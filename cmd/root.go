@@ -18,7 +18,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
+	"os/user"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -62,8 +64,12 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "config.yml", "config file (default is $HOME/.atcoder-testcase-generator-cli.yaml)")
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal( err )
+	}
+	fmt.Println( usr.HomeDir )
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", fmt.Sprintf("%s/atgc.yml", usr.HomeDir), "config file (default is $HOME/atgc.yml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
