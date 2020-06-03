@@ -26,6 +26,12 @@ import (
 
 var cfgFile string
 
+type Config struct {
+	AccessToken string
+}
+
+var config Config
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "atcoder-testcase-generator-cli",
@@ -57,7 +63,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.atcoder-testcase-generator-cli.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "config.yml", "config file (default is $HOME/.atcoder-testcase-generator-cli.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -87,5 +93,9 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+	if err := viper.Unmarshal(&config); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
