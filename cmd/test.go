@@ -38,7 +38,6 @@ to quickly create a Cobra application.`,
 			LogLevel: dropbox.LogInfo, // if needed, set the desired logging level. Default is off
 		}
 		dbx := users.New(config)
-		fmt.Println(dbx)
 
 		//arg := users.NewGetAccountArg("sylc.yagi@gmail.com")
 		resp, err := dbx.GetCurrentAccount()

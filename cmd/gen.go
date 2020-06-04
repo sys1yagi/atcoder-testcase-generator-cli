@@ -16,10 +16,15 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"fmt"
-	"os"
-
+	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox"
+	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/files"
+	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/sharing"
 	"github.com/spf13/cobra"
+	"io"
+	"os"
+	"strings"
 )
 
 // genCmd represents the gen command
@@ -32,7 +37,7 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			fmt.Println("Error Usage: atgc $contestName")
 			os.Exit(1)
@@ -41,10 +46,29 @@ to quickly create a Cobra application.`,
 		fmt.Println(contestName)
 
 		// 対象のテストケースを取り出す
+		problems, err := getTestCases(contestName)
+		if err != nil {
+			return err
+		}
+		fmt.Println("problems")
+
+		for _, problem := range problems {
+			for _, inout :=range	problem.TestInputAndOutputs {
+				fmt.Println(inout.CaseName)
+				fmt.Printf("in: %s\n", inout.Input)
+				fmt.Printf("out: %s\n", inout.Output)
+			}
+		}
 
 		// ファイル群を生成する
 
+		return nil
 	},
+}
+
+type TestFile struct {
+	CaseName string
+	Data     string
 }
 
 type TestInputAndOutput struct {
@@ -58,9 +82,153 @@ type Problem struct {
 	TestInputAndOutputs []TestInputAndOutput
 }
 
+var url = "https://www.dropbox.com/sh/nx3tnilzqz7df8a/AAAYlTq2tiEHl5hsESw6-yfLa?dl=0"
 
-func getTestCases(contestName string) {
+var sharedLink = &files.SharedLink{
+	url,
+	"",
+}
 
+func getTestCases(contestName string) ([]*Problem, error) {
+	config := dropbox.Config{
+		Token:    config.AccessToken,
+		LogLevel: dropbox.LogOff,
+	}
+	f := files.New(config)
+	s := sharing.New(config)
+	args := files.NewListFolderArg("")
+	args.SharedLink = sharedLink
+	res, err := f.ListFolder(args)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range res.Entries {
+		switch v := e.(type) {
+		case *files.FolderMetadata:
+			if strings.ToLower(v.Name) == strings.ToLower(contestName) {
+				return getTestCasesFromContestFolder(f, s, v)
+			}
+		default:
+			// no op
+		}
+	}
+	return nil, nil
+}
+
+func getTestCasesFromContestFolder(client files.Client, sharingClient sharing.Client, folder *files.FolderMetadata) (problems []*Problem, err error) {
+	args := files.NewListFolderArg(fmt.Sprintf("/%s", folder.Name))
+	args.SharedLink = sharedLink
+	res, err := client.ListFolder(args)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range res.Entries {
+		switch v := e.(type) {
+		case *files.FolderMetadata:
+			problem, err := getTestCasesFromProblemFolder(client, sharingClient, folder.Name, v)
+			if err != nil {
+				return nil, err
+			}
+			if problem != nil {
+				problems = append(problems, problem)
+			}
+			fmt.Println(v.Name)
+		default:
+			// no op
+		}
+	}
+	return
+}
+
+func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Client, parentFolderName string, folder *files.FolderMetadata) (*Problem, error) {
+	path := fmt.Sprintf("/%s/%s", parentFolderName, folder.Name)
+	args := files.NewListFolderArg(path)
+	args.SharedLink = sharedLink
+	res, err := client.ListFolder(args)
+	if err != nil {
+		return nil, err
+	}
+
+	problem := Problem{}
+
+	var input []*TestFile
+	var output []*TestFile
+
+	for _, e := range res.Entries {
+		switch v := e.(type) {
+		case *files.FolderMetadata:
+			if v.Name == "in" {
+				input, err = getTestCasesFromProblemCaseFolder(client, sharingClient, path, v)
+				if err != nil {
+					return nil, err
+				}
+			} else if v.Name == "out" {
+				output, err = getTestCasesFromProblemCaseFolder(client, sharingClient, path, v)
+				if err != nil {
+					return nil, err
+				}
+			}
+		default:
+			// no op
+		}
+	}
+
+	for _, i := range input {
+		var testInputAndOutput TestInputAndOutput
+		testInputAndOutput.CaseName = i.CaseName
+		testInputAndOutput.Input = i.Data
+
+		for _, o := range output {
+			if i.CaseName == o.CaseName {
+				testInputAndOutput.Output = o.Data
+				problem.TestInputAndOutputs = append(problem.TestInputAndOutputs, testInputAndOutput)
+				break
+			}
+		}
+	}
+
+	return &problem, nil
+}
+
+func getTestCasesFromProblemCaseFolder(client files.Client, sharingClient sharing.Client, parentFolderName string, folder *files.FolderMetadata) (testFiles []*TestFile, err error) {
+	path := fmt.Sprintf("%s/%s", parentFolderName, folder.Name)
+	args := files.NewListFolderArg(path)
+	args.SharedLink = sharedLink
+	res, err := client.ListFolder(args)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range res.Entries {
+		switch v := e.(type) {
+		case *files.FileMetadata:
+			testFile := TestFile{}
+			testFile.CaseName = v.Name
+			filePath := fmt.Sprintf("%s/%s", path, v.Name)
+
+			fileArgs := sharing.NewGetSharedLinkMetadataArg(url)
+			fileArgs.Path = filePath
+
+			fmt.Printf("%s loading...\n", filePath)
+
+			_, content, err := sharingClient.GetSharedLinkFile(fileArgs)
+			if err != nil {
+				return nil, err
+			}
+			data := StreamToString(content)
+			testFile.Data = data
+			testFiles = append(testFiles, &testFile)
+		default:
+			// no op
+		}
+	}
+	return
+}
+
+func StreamToString(stream io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	return buf.String()
 }
 
 func init() {
