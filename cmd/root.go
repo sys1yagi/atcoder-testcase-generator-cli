@@ -36,7 +36,7 @@ var config Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "atcoder-testcase-generator-cli",
+	Use:   "atgc",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -68,7 +68,6 @@ func init() {
 	if err != nil {
 		log.Fatal( err )
 	}
-	fmt.Println( usr.HomeDir )
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", fmt.Sprintf("%s/atgc.yml", usr.HomeDir), "config file (default is $HOME/atgc.yml)")
 
 	// Cobra also supports local flags, which will only run
