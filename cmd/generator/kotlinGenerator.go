@@ -94,7 +94,14 @@ func (g kotlinGenerator) kotlinTest(contestName string, problem *Problem) error 
 
 	if len(problem.TestInputAndOutputs) == 0 {
 		test := template.Must(template.ParseFiles("template/kotlin/test_default.txt"))
-		if err := test.Execute(testFile, map[string]string{}); err != nil {
+		data := map[string]TestData{
+			"testData": {
+				Package:   fmt.Sprintf("%s.%s.%s", g.config.KotlinPackageName, contestName, programName),
+				Problem:   programName,
+				InOutList: "",
+			},
+		}
+		if err := test.Execute(testFile, data); err != nil {
 			log.Fatal(err)
 		}
 	} else {

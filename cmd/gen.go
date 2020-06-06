@@ -52,6 +52,36 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
+		if len(problems) == 0 {
+			problems = []*generator.Problem{
+				{
+					Name: "A",
+					TestInputAndOutputs: []generator.TestInputAndOutput{},
+				},
+				{
+					Name: "B",
+					TestInputAndOutputs: []generator.TestInputAndOutput{},
+				},
+				{
+					Name: "C",
+					TestInputAndOutputs: []generator.TestInputAndOutput{},
+				},
+				{
+					Name: "D",
+					TestInputAndOutputs: []generator.TestInputAndOutput{},
+				},
+				{
+					Name: "E",
+					TestInputAndOutputs: []generator.TestInputAndOutput{},
+				},
+				{
+					Name: "F",
+					TestInputAndOutputs: []generator.TestInputAndOutput{},
+				},
+			}
+
+		}
+
 		// ファイル群を生成する
 		g := generator.GetGenerator("kotlin", config)
 		if g == nil {
