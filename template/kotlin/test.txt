@@ -23,8 +23,8 @@ class {{ .testData.Problem }}KtTest {
     @ParameterizedTest
     @MethodSource("generator")
     fun main(input: String, output: String) {
-        val inValue = javaClass.classLoader.getResource("com/sys1yagi/atcoder/abc169/{{ .testData.Problem }}/in_${input}")?.readText()?.trimIndent()
-        val outValue = javaClass.classLoader.getResource("com/sys1yagi/atcoder/abc169/{{ .testData.Problem }}/out_${output}")?.readText()?.trimIndent()
+        val inValue = javaClass.classLoader.getResource("com/sys1yagi/atcoder/{{ .testData.ContestName }}/{{ .testData.Problem }}/in_${input}")?.readText()?.trimIndent()
+        val outValue = javaClass.classLoader.getResource("com/sys1yagi/atcoder/{{ .testData.ContestName }}/{{ .testData.Problem }}/out_${output}")?.readText()?.trimIndent()
         rule.setIn(inValue)
         val result = rule.captureString()
         main(emptyArray())

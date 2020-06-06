@@ -67,6 +67,7 @@ func (g kotlinGenerator) kotlinTestTool() error {
 type TestData struct {
 	Package   string
 	Problem   string
+	ContestName string
 	InOutList string
 }
 
@@ -98,6 +99,7 @@ func (g kotlinGenerator) kotlinTest(contestName string, problem *Problem) error 
 			"testData": {
 				Package:   fmt.Sprintf("%s.%s.%s", g.config.KotlinPackageName, contestName, programName),
 				Problem:   programName,
+				ContestName: "",
 				InOutList: "",
 			},
 		}
@@ -116,6 +118,7 @@ func (g kotlinGenerator) kotlinTest(contestName string, problem *Problem) error 
 			"testData": {
 				Package:   fmt.Sprintf("%s.%s.%s", g.config.KotlinPackageName, contestName, programName),
 				Problem:   programName,
+				ContestName: contestName,
 				InOutList: inOutFileName,
 			},
 		}
