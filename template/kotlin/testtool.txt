@@ -1,0 +1,147 @@
+package testtool
+
+import io.mockk.*
+import org.junit.rules.ExternalResource
+import java.io.ByteArrayInputStream
+import java.io.PrintStream
+
+
+class StandardInOutRule : ExternalResource() {
+    override fun before() {
+
+    }
+
+    override fun after() {
+        System.setIn(null)
+    }
+
+    fun setIn(line: String?) {
+        line?.let {
+            System.setIn(
+                ByteArrayInputStream(
+                    it.toByteArray()
+                )
+            )
+        } ?: System.setIn(null)
+    }
+
+    fun captureLongList(): List<Long> {
+        val output = mutableListOf<Long>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output
+    }
+
+    fun captureIntList(): List<Int> {
+        val output = mutableListOf<Int>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output
+    }
+
+    fun captureStringList(): List<String> {
+        val output = mutableListOf<Any>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output as List<String>
+    }
+
+    fun captureString(): CapturingSlot<String> {
+        val output = slot<Any>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output as CapturingSlot<String>
+    }
+
+    fun captureDouble(): CapturingSlot<Double> {
+        val output = slot<Double>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output
+    }
+
+    fun captureFloat(): CapturingSlot<Float> {
+        val output = slot<Float>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output
+    }
+
+    fun captureInt(): CapturingSlot<Int> {
+        val output = slot<Int>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output
+    }
+
+    fun captureLong(): CapturingSlot<Long> {
+        val output = slot<Long>()
+        val printStream
+                : PrintStream = mockk {
+            every {
+                this@mockk.println(capture(output))
+            }.just(Runs)
+            every {
+                flush()
+            }.just(Runs)
+        }
+        System.setOut(printStream)
+        return output
+    }
+}

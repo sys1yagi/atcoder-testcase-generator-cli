@@ -22,6 +22,7 @@ import (
 	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/files"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/sharing"
 	"github.com/spf13/cobra"
+	"github.com/sys1yagi/atcoder-testcase-generator-cli/cmd/generator"
 	"io"
 	"os"
 	"strings"
@@ -50,36 +51,14 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			return err
 		}
-		fmt.Println("problems")
-
-		for _, problem := range problems {
-			for _, inout :=range	problem.TestInputAndOutputs {
-				fmt.Println(inout.CaseName)
-				fmt.Printf("in: %s\n", inout.Input)
-				fmt.Printf("out: %s\n", inout.Output)
-			}
-		}
 
 		// ファイル群を生成する
-
-		return nil
+		g := generator.GetGenerator("kotlin", config)
+		if g == nil {
+			return fmt.Errorf("generator not found")
+		}
+		return g.Generate(contestName, problems)
 	},
-}
-
-type TestFile struct {
-	CaseName string
-	Data     string
-}
-
-type TestInputAndOutput struct {
-	CaseName string
-	Input    string
-	Output   string
-}
-
-type Problem struct {
-	Name                string
-	TestInputAndOutputs []TestInputAndOutput
 }
 
 var url = "https://www.dropbox.com/sh/nx3tnilzqz7df8a/AAAYlTq2tiEHl5hsESw6-yfLa?dl=0"
@@ -89,9 +68,9 @@ var sharedLink = &files.SharedLink{
 	"",
 }
 
-func getTestCases(contestName string) ([]*Problem, error) {
+func getTestCases(contestName string) ([]*generator.Problem, error) {
 	config := dropbox.Config{
-		Token:    config.AccessToken,
+		Token:    config.DropboxAccessToken,
 		LogLevel: dropbox.LogOff,
 	}
 	f := files.New(config)
@@ -115,7 +94,7 @@ func getTestCases(contestName string) ([]*Problem, error) {
 	return nil, nil
 }
 
-func getTestCasesFromContestFolder(client files.Client, sharingClient sharing.Client, folder *files.FolderMetadata) (problems []*Problem, err error) {
+func getTestCasesFromContestFolder(client files.Client, sharingClient sharing.Client, folder *files.FolderMetadata) (problems []*generator.Problem, err error) {
 	args := files.NewListFolderArg(fmt.Sprintf("/%s", folder.Name))
 	args.SharedLink = sharedLink
 	res, err := client.ListFolder(args)
@@ -140,7 +119,7 @@ func getTestCasesFromContestFolder(client files.Client, sharingClient sharing.Cl
 	return
 }
 
-func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Client, parentFolderName string, folder *files.FolderMetadata) (*Problem, error) {
+func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Client, parentFolderName string, folder *files.FolderMetadata) (*generator.Problem, error) {
 	path := fmt.Sprintf("/%s/%s", parentFolderName, folder.Name)
 	args := files.NewListFolderArg(path)
 	args.SharedLink = sharedLink
@@ -149,10 +128,12 @@ func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Cl
 		return nil, err
 	}
 
-	problem := Problem{}
+	problem := generator.Problem{
+		Name: folder.Name,
+	}
 
-	var input []*TestFile
-	var output []*TestFile
+	var input []*generator.TestFile
+	var output []*generator.TestFile
 
 	for _, e := range res.Entries {
 		switch v := e.(type) {
@@ -174,7 +155,7 @@ func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Cl
 	}
 
 	for _, i := range input {
-		var testInputAndOutput TestInputAndOutput
+		var testInputAndOutput generator.TestInputAndOutput
 		testInputAndOutput.CaseName = i.CaseName
 		testInputAndOutput.Input = i.Data
 
@@ -190,7 +171,7 @@ func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Cl
 	return &problem, nil
 }
 
-func getTestCasesFromProblemCaseFolder(client files.Client, sharingClient sharing.Client, parentFolderName string, folder *files.FolderMetadata) (testFiles []*TestFile, err error) {
+func getTestCasesFromProblemCaseFolder(client files.Client, sharingClient sharing.Client, parentFolderName string, folder *files.FolderMetadata) (testFiles []*generator.TestFile, err error) {
 	path := fmt.Sprintf("%s/%s", parentFolderName, folder.Name)
 	args := files.NewListFolderArg(path)
 	args.SharedLink = sharedLink
@@ -202,7 +183,7 @@ func getTestCasesFromProblemCaseFolder(client files.Client, sharingClient sharin
 	for _, e := range res.Entries {
 		switch v := e.(type) {
 		case *files.FileMetadata:
-			testFile := TestFile{}
+			testFile := generator.TestFile{}
 			testFile.CaseName = v.Name
 			filePath := fmt.Sprintf("%s/%s", path, v.Name)
 

@@ -1,0 +1,32 @@
+package {{ .package }}
+import testtool.StandardInOutRule
+import testtool.emptyArgs
+import org.assertj.core.api.Assertions
+import org.junit.Rule
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+
+class {{ .problem }}KtTest {
+    @get:Rule
+    val rule = StandardInOutRule()
+
+    companion object {
+        @JvmStatic
+        fun generator(): List<Arguments> {
+            return listOf(
+                Arguments.arguments("33", "Yes")
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("generator")
+    fun main(input: String, expected: String) {
+        rule.setIn(input)
+        val result = rule.captureString()
+        main(emptyArgs())
+        Assertions.assertThat(result.captured).isEqualTo(expected)
+    }
+}
+

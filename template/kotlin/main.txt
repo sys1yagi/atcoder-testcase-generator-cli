@@ -1,0 +1,9 @@
+package {{ .package }}
+
+// https://atcoder.jp/contests/{{ .contestName }}/tasks/{{ .contestName }}_{{ .problem }}
+fun intList() = readLine()?.split(" ")?.map(String::toInt) ?: TODO()
+fun longList() = readLine()?.split(" ")?.map(String::toLong) ?: TODO()
+fun stringList(n: Int) = 0.until(n).map { readLine() ?: TODO() }
+fun main(args: Array<String>) {
+    val input = readLine() ?: return
+}

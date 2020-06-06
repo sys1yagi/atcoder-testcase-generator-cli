@@ -17,9 +17,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/users"
-	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox"
 	"github.com/spf13/cobra"
+	"github.com/sys1yagi/atcoder-testcase-generator-cli/cmd/generator"
 )
 
 // testCmd represents the test command
@@ -33,21 +32,40 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config := dropbox.Config{
-			Token:    config.AccessToken,
-			LogLevel: dropbox.LogInfo, // if needed, set the desired logging level. Default is off
+		contestName := "ABC169"
+		problems := []*generator.Problem{
+			{
+				Name: "A",
+				TestInputAndOutputs: []generator.TestInputAndOutput{
+					{
+						CaseName: "sample.txt",
+						Input:    "2 5",
+						Output:   "10",
+					},
+					{
+						CaseName: "sample2.txt",
+						Input:    "2 54",
+						Output:   "110",
+					},
+				},
+			},
+			{
+				Name: "B",
+				TestInputAndOutputs: []generator.TestInputAndOutput{
+					{
+						CaseName: "sample3.txt",
+						Input:    "2 5 5",
+						Output:   "100",
+					},
+				},
+			},
 		}
-		dbx := users.New(config)
 
-		//arg := users.NewGetAccountArg("sylc.yagi@gmail.com")
-		resp, err := dbx.GetCurrentAccount()
-		if err != nil {
-			return err
+		g := generator.GetGenerator("kotlin", config)
+		if g == nil {
+			return fmt.Errorf("generator not found")
 		}
-
-		fmt.Printf("Name: %v", resp.Name)
-		fmt.Println("test called")
-		return nil
+		return g.Generate(contestName, problems)
 	},
 }
 

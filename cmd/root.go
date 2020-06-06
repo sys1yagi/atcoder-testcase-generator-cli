@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/sys1yagi/atcoder-testcase-generator-cli/cmd/generator"
 	"log"
 	"os"
 	"os/user"
@@ -28,11 +29,7 @@ import (
 
 var cfgFile string
 
-type Config struct {
-	AccessToken string
-}
-
-var config Config
+var config generator.Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
