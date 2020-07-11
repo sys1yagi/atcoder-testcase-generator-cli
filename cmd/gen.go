@@ -31,13 +31,8 @@ import (
 // genCmd represents the gen command
 var genCmd = &cobra.Command{
 	Use:   "gen",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "get in/out data of a contest then generate test cases",
+	Long: `get in/out data of a contest then generate test cases`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			fmt.Println("Error Usage: atgc $contestName")
@@ -52,6 +47,7 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
+		// テストケースが存在しない場合
 		if len(problems) == 0 {
 			problems = []*generator.Problem{
 				{
@@ -98,6 +94,7 @@ var sharedLink = &files.SharedLink{
 	"",
 }
 
+// 指定したコンテスト名のテストの入出力データを取り出す
 func getTestCases(contestName string) ([]*generator.Problem, error) {
 	config := dropbox.Config{
 		Token:    config.DropboxAccessToken,
@@ -114,6 +111,7 @@ func getTestCases(contestName string) ([]*generator.Problem, error) {
 	for _, e := range res.Entries {
 		switch v := e.(type) {
 		case *files.FolderMetadata:
+			// フォルダ一覧からcontestNameに一致するものを探す
 			if strings.ToLower(v.Name) == strings.ToLower(contestName) {
 				return getTestCasesFromContestFolder(f, s, v)
 			}
@@ -124,6 +122,7 @@ func getTestCases(contestName string) ([]*generator.Problem, error) {
 	return nil, nil
 }
 
+// コンテストフォルダからテストデータを取り出す
 func getTestCasesFromContestFolder(client files.Client, sharingClient sharing.Client, folder *files.FolderMetadata) (problems []*generator.Problem, err error) {
 	args := files.NewListFolderArg(fmt.Sprintf("/%s", folder.Name))
 	args.SharedLink = sharedLink
@@ -188,9 +187,10 @@ func getTestCasesFromProblemFolder(client files.Client, sharingClient sharing.Cl
 		var testInputAndOutput generator.TestInputAndOutput
 		testInputAndOutput.CaseName = i.CaseName
 		testInputAndOutput.Input = i.Data
-
+		inName := strings.ReplaceAll(i.CaseName, ".in", "")
 		for _, o := range output {
-			if i.CaseName == o.CaseName {
+			outName := strings.ReplaceAll(o.CaseName, ".out", "")
+			if inName == outName {
 				testInputAndOutput.Output = o.Data
 				problem.TestInputAndOutputs = append(problem.TestInputAndOutputs, testInputAndOutput)
 				break
