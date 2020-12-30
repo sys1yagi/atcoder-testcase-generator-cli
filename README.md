@@ -8,6 +8,12 @@ Submit前にすべての実際のテストケースを試せます。
 
 TODO
 
+# Usage
+
+ex: name=abc123
+
+`~/go/src/github.com/sys1yagi/atcoder-testcase-generator-cli/atgc gen [name]`
+
 # Develop
 
 TODO

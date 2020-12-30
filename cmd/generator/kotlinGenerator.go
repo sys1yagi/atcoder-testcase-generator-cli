@@ -133,9 +133,8 @@ func (g kotlinGenerator) kotlinTest(contestName string, problem *Problem) error 
 func (g kotlinGenerator) kotlinTestFile(contestName string, problem *Problem) error {
 	for _, testCase := range problem.TestInputAndOutputs {
 		programName := strings.ToLower(problem.Name)
-		dir := fmt.Sprintf("%s/test/resources/%s/%s/%s",
+		dir := fmt.Sprintf("%s/test/%s/%s",
 			g.config.DestinationDirPath,
-			strings.ReplaceAll(g.config.KotlinPackageName, ".", "/"),
 			contestName,
 			programName,
 		)
