@@ -4,4 +4,5 @@ type Config struct {
 	DropboxAccessToken string
 	KotlinPackageName string
 	DestinationDirPath string
+	DestinationTestFileDirPath string
 }

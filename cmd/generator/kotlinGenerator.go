@@ -133,8 +133,8 @@ func (g kotlinGenerator) kotlinTest(contestName string, problem *Problem) error 
 func (g kotlinGenerator) kotlinTestFile(contestName string, problem *Problem) error {
 	for _, testCase := range problem.TestInputAndOutputs {
 		programName := strings.ToLower(problem.Name)
-		dir := fmt.Sprintf("%s/test/%s/%s",
-			g.config.DestinationDirPath,
+		dir := fmt.Sprintf("%s/test/atcoder/%s/%s",
+			g.config.DestinationTestFileDirPath,
 			contestName,
 			programName,
 		)

@@ -1,3 +1,4 @@
 DropboxAccessToken: "YOUR_DROPBOX_ACCESS_TOKEN"
 KotlinPackageName: "com.sys1yagi.atcoder"
 DestinationDirPath: "./atcoder/src/"
+DestinationTestFileDirPath: "./atcoder/"
